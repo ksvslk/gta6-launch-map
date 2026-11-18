@@ -82,15 +82,16 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
 #clip{opacity:0;transition:opacity .6s ease}                /* the full clip with sound, in the same tint as the quiet loop */
 .loop.is-live #clip{opacity:1}
 .sound{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;border-radius:12px;background:none;color:inherit;font:inherit;cursor:pointer;
-  display:flex;align-items:flex-end;justify-content:center;-webkit-tap-highlight-color:transparent}
+  display:flex;align-items:flex-start;justify-content:flex-end;-webkit-tap-highlight-color:transparent}   /* the whole clip is the button */
 .sound:focus-visible{outline:2px solid var(--teal);outline-offset:-14px}
-.sound-pill{display:inline-flex;align-items:center;gap:6px;margin-bottom:15%;padding:4px 12px 4px 9px;border-radius:999px;white-space:nowrap;
-  background:rgba(21,10,42,.8);border:1px solid rgba(255,241,230,.3);font:600 .8125rem/1.4 var(--body);color:var(--ink)}
+.sound-pill{position:absolute;top:-6px;right:-6px;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;   /* speaker mark on the faded corner, clear of faces and decks */
+  background:rgba(21,10,42,.8);border:1px solid rgba(255,241,230,.35);color:var(--ink)}
 .sound:hover .sound-pill{border-color:var(--ink)}
 .loop.is-on .sound-pill{background:var(--ink);border-color:var(--ink);color:var(--night)}
-.sound svg{width:15px;height:15px;flex:none}
-.sound .waves{opacity:0}
-.loop.is-on .waves{opacity:1}
+.sound svg{width:16px;height:16px}
+.sound .waves,.loop.is-on .cross{display:none}
+.loop.is-on .waves{display:inline}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 
 /* Map */
 .stage{position:relative;aspect-ratio:2000/915;border-radius:14px;overflow:hidden;touch-action:manipulation;
@@ -166,7 +167,8 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
   .wave .state{text-align:left}
   .when,.state{font-size:.9375rem}
   .legend{gap:6px 16px;font-size:.875rem}
-  .sound-pill{margin-bottom:9%;padding:3px 10px 3px 8px;font-size:.75rem}
+  .sound-pill{width:24px;height:24px}
+  .sound svg{width:13px;height:13px}
 }
 @media (prefers-reduced-motion:reduce){#pulse{animation:none}#clip{transition:none}}
 </style>
@@ -189,13 +191,13 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
     </div>
     <div class="loop" id="loopBox">
       <div class="loop-view" aria-hidden="true"><div class="loop-fade">
-        <video id="loop" muted loop playsinline preload="none" poster="loop.jpg?v=2" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
+        <video id="loop" muted loop playsinline preload="none" poster="loop.jpg?v=3" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
         <video id="clip" loop playsinline preload="none" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
       </div></div>
       <button class="sound" id="sound" type="button" aria-pressed="false">
         <span class="sound-pill">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h2.5L8 3v10L4.5 10H2z" fill="currentColor"/><path class="waves" d="M10.4 5.6a3.4 3.4 0 0 1 0 4.8M12.2 3.8a6 6 0 0 1 0 8.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-          <span id="soundText">Play sound</span>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 6H4l3.5-3v10L4 10H1.5z" fill="currentColor"/><path class="waves" d="M9.9 5.6a3.4 3.4 0 0 1 0 4.8M11.7 3.8a6 6 0 0 1 0 8.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path class="cross" d="M10.3 6l4 4M14.3 6l-4 4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <span class="sr" id="soundText">Play sound</span>
         </span>
       </button>
     </div>
@@ -343,11 +345,12 @@ function quietLoop() {                        // the muted loop runs only while 
   if (clip.paused && inView && !document.hidden) tryPlay(loop); else loop.pause();
 }
 if (ambient) {
-  const start = () => { loop.src = 'loop.mp4?v=2'; quietLoop(); };
+  const start = () => { loop.src = 'loop.mp4?v=3'; quietLoop(); };
   if (document.readyState === 'complete') start(); else addEventListener('load', start, { once: true });
   if (window.IntersectionObserver) new IntersectionObserver(es => es.forEach(e => { inView = e.isIntersecting; quietLoop(); })).observe(loopBox);
 }
-function showSound(on) {
+function syncSound() {                        // one source of truth: is the clip really playing right now?
+  const on = !clip.paused;
   loopBox.classList.toggle('is-on', on);
   if (!on) loopBox.classList.remove('is-live');
   soundBtn.setAttribute('aria-pressed', String(on));
@@ -356,21 +359,21 @@ function showSound(on) {
   quietLoop();
 }
 function playSound() {
-  if (!clip.getAttribute('src')) clip.src = 'clip.mp4?v=2';   // fetched only for people who ask for sound; bump ?v= when the file changes
+  if (!clip.getAttribute('src')) clip.src = 'clip.mp4?v=3';   // fetched only for people who ask for sound; bump ?v= when the file changes
   const p = clip.play();
-  if (p && p.catch) p.catch(() => showSound(false));
+  if (p && p.catch) p.catch(syncSound);
 }
-clip.addEventListener('play', () => showSound(true));          // also fires when the phone's media controls start it
-clip.addEventListener('pause', () => showSound(false));        // and when they pause it
-clip.addEventListener('error', () => showSound(false));
-clip.addEventListener('playing', () => { if (!clip.paused) loopBox.classList.add('is-live'); });
+// These fire however the clip was started or stopped: the button here, the phone's media controls, or the browser itself.
+['play', 'pause', 'ended', 'emptied'].forEach(ev => clip.addEventListener(ev, syncSound));
+clip.addEventListener('playing', () => { syncSound(); if (!clip.paused) loopBox.classList.add('is-live'); });
+clip.addEventListener('error', () => { clip.removeAttribute('src'); clip.load(); syncSound(); });   // start clean on the next tap
 soundBtn.addEventListener('click', () => { if (clip.paused) playSound(); else clip.pause(); });
 document.addEventListener('visibilitychange', quietLoop);
 if ('mediaSession' in navigator) {
   try {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: 'GTA VI launch map', artist: 'Music by @mindenterprises459',
-      artwork: [{ src: new URL('loop.jpg?v=2', location.href).href, sizes: '320x320', type: 'image/jpeg' }],
+      artwork: [{ src: new URL('loop.jpg?v=3', location.href).href, sizes: '320x320', type: 'image/jpeg' }],
     });
     navigator.mediaSession.setActionHandler('play', playSound);
     navigator.mediaSession.setActionHandler('pause', () => clip.pause());
