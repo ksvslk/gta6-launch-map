@@ -191,7 +191,7 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
     </div>
     <div class="loop" id="loopBox">
       <div class="loop-view" aria-hidden="true"><div class="loop-fade">
-        <video id="loop" muted loop playsinline preload="none" poster="loop.jpg?v=3" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
+        <video id="loop" muted loop playsinline preload="none" poster="loop.jpg?v=4" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
         <video id="clip" loop playsinline preload="none" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
       </div></div>
       <button class="sound" id="sound" type="button" aria-pressed="false">
@@ -345,7 +345,7 @@ function quietLoop() {                        // the muted loop runs only while 
   if (clip.paused && inView && !document.hidden) tryPlay(loop); else loop.pause();
 }
 if (ambient) {
-  const start = () => { loop.src = 'loop.mp4?v=3'; quietLoop(); };
+  const start = () => { loop.src = 'loop.mp4?v=4'; quietLoop(); };
   if (document.readyState === 'complete') start(); else addEventListener('load', start, { once: true });
   if (window.IntersectionObserver) new IntersectionObserver(es => es.forEach(e => { inView = e.isIntersecting; quietLoop(); })).observe(loopBox);
 }
@@ -359,7 +359,7 @@ function syncSound() {                        // one source of truth: is the cli
   quietLoop();
 }
 function playSound() {
-  if (!clip.getAttribute('src')) clip.src = 'clip.mp4?v=3';   // fetched only for people who ask for sound; bump ?v= when the file changes
+  if (!clip.getAttribute('src')) clip.src = 'clip.mp4?v=4';   // fetched only for people who ask for sound; bump ?v= when the file changes
   const p = clip.play();
   if (p && p.catch) p.catch(syncSound);
 }
@@ -373,7 +373,7 @@ if ('mediaSession' in navigator) {
   try {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: 'GTA VI launch map', artist: 'Music by @mindenterprises459',
-      artwork: [{ src: new URL('loop.jpg?v=3', location.href).href, sizes: '320x320', type: 'image/jpeg' }],
+      artwork: [{ src: new URL('loop.jpg?v=4', location.href).href, sizes: '320x320', type: 'image/jpeg' }],
     });
     navigator.mediaSession.setActionHandler('play', playSound);
     navigator.mediaSession.setActionHandler('pause', () => clip.pause());
