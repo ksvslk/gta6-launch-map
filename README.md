@@ -19,6 +19,7 @@ A live world map of where GTA VI has unlocked, country by country. Unofficial fa
 | `countries.json` | One record per country: unlock time, wave and a pre-projected outline. |
 | `og.jpg` | Link-preview image (1200×630) used when the page is shared. |
 | `loop.mp4`, `loop.jpg` | The looping clip in the page header (8 seconds, muted) and its still frame. |
+| `clip.mp4` | The same clip in its original colours with sound. Loaded only when a visitor taps Play sound. |
 | `build/` | Script that regenerates `countries.json` from Natural Earth shapes. |
 
 ## Rebuild the map data
