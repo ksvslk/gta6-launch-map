@@ -73,16 +73,18 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
 .next-count[hidden]{display:none}
 .next-sub{font-size:.875rem;line-height:1.4;color:var(--haze)}
 .loop{position:relative;align-self:center;aspect-ratio:1;margin:-48px 0}  /* centred on the headline row; the fade spills into the gaps above and below */
-.loop-view{position:absolute;inset:0;pointer-events:none;
-  -webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 32%,transparent 97%);
-  mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 32%,transparent 97%)}
+.loop-view,.loop-fade{position:absolute;inset:0;pointer-events:none}   /* a square whose edges feather out: one fade across, one down */
+.loop-view{-webkit-mask-image:linear-gradient(to right,transparent,#000 11%,#000 89%,transparent);
+  mask-image:linear-gradient(to right,transparent,#000 11%,#000 89%,transparent)}
+.loop-fade{-webkit-mask-image:linear-gradient(to bottom,transparent,#000 11%,#000 89%,transparent);
+  mask-image:linear-gradient(to bottom,transparent,#000 11%,#000 89%,transparent)}
 .loop-view video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%;display:block}
 #clip{opacity:0;transition:opacity .6s ease}                /* the original-colour clip, shown while its sound plays */
 .loop.is-live #clip{opacity:1}
-.sound{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;border-radius:50%;background:none;color:inherit;font:inherit;cursor:pointer;
+.sound{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;border-radius:12px;background:none;color:inherit;font:inherit;cursor:pointer;
   display:flex;align-items:flex-end;justify-content:center;-webkit-tap-highlight-color:transparent}
-.sound:focus-visible{outline:2px solid var(--teal);outline-offset:-8px}
-.sound-pill{display:inline-flex;align-items:center;gap:6px;margin-bottom:13%;padding:4px 12px 4px 9px;border-radius:999px;white-space:nowrap;
+.sound:focus-visible{outline:2px solid var(--teal);outline-offset:-14px}
+.sound-pill{display:inline-flex;align-items:center;gap:6px;margin-bottom:15%;padding:4px 12px 4px 9px;border-radius:999px;white-space:nowrap;
   background:rgba(21,10,42,.8);border:1px solid rgba(255,241,230,.3);font:600 .8125rem/1.4 var(--body);color:var(--ink)}
 .sound:hover .sound-pill{border-color:var(--ink)}
 .loop.is-on .sound-pill{background:var(--ink);border-color:var(--ink);color:var(--night)}
@@ -151,9 +153,9 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
 .foot{border-top:1px solid var(--rule);padding-top:16px;color:var(--haze);font-size:.9375rem}
 
 @media (max-width:1179px){
-  .hero{grid-template-columns:minmax(0,1fr) clamp(140px,34vw,250px);align-items:stretch}
+  .hero{grid-template-columns:minmax(0,1fr) auto;align-items:center}
   .headline{grid-column:1/-1}
-  .loop{aspect-ratio:auto;min-height:160px;margin:0;align-self:stretch}
+  .loop{width:clamp(124px,30vw,172px);margin:0}
 }
 @media (max-width:860px){
   .lower{grid-template-columns:1fr}
@@ -164,6 +166,7 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
   .wave .state{text-align:left}
   .when,.state{font-size:.9375rem}
   .legend{gap:6px 16px;font-size:.875rem}
+  .sound-pill{margin-bottom:9%;padding:3px 10px 3px 8px;font-size:.75rem}
 }
 @media (prefers-reduced-motion:reduce){#pulse{animation:none}#clip{transition:none}}
 </style>
@@ -185,10 +188,10 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
       <p class="next-sub" id="nextSub"></p>
     </div>
     <div class="loop" id="loopBox">
-      <div class="loop-view" aria-hidden="true">
+      <div class="loop-view" aria-hidden="true"><div class="loop-fade">
         <video id="loop" muted loop playsinline preload="none" poster="loop.jpg" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
         <video id="clip" loop playsinline preload="none" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
-      </div>
+      </div></div>
       <button class="sound" id="sound" type="button" aria-pressed="false">
         <span class="sound-pill">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h2.5L8 3v10L4.5 10H2z" fill="currentColor"/><path class="waves" d="M10.4 5.6a3.4 3.4 0 0 1 0 4.8M12.2 3.8a6 6 0 0 1 0 8.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
