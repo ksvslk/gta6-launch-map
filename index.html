@@ -79,7 +79,7 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
 .loop-fade{-webkit-mask-image:linear-gradient(to bottom,transparent,#000 11%,#000 89%,transparent);
   mask-image:linear-gradient(to bottom,transparent,#000 11%,#000 89%,transparent)}
 .loop-view video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%;display:block}
-#clip{opacity:0;transition:opacity .6s ease}                /* the original-colour clip, shown while its sound plays */
+#clip{opacity:0;transition:opacity .6s ease}                /* the full clip with sound, in the same tint as the quiet loop */
 .loop.is-live #clip{opacity:1}
 .sound{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;border-radius:12px;background:none;color:inherit;font:inherit;cursor:pointer;
   display:flex;align-items:flex-end;justify-content:center;-webkit-tap-highlight-color:transparent}
@@ -150,7 +150,7 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
 .wave.is-later .when{color:var(--haze)}
 .notes p{color:var(--haze);max-width:60ch;margin-bottom:.8em}
 .notes p:last-child{margin-bottom:0;color:var(--dim);font-size:.875rem}
-.foot{border-top:1px solid var(--rule);padding-top:16px;color:var(--haze);font-size:.9375rem}
+.foot{display:flex;flex-wrap:wrap;gap:4px 28px;border-top:1px solid var(--rule);padding-top:16px;color:var(--haze);font-size:.9375rem}
 
 @media (max-width:1179px){
   .hero{grid-template-columns:minmax(0,1fr) auto;align-items:center}
@@ -252,6 +252,7 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
 
   <footer class="foot">
     <p>Made by <a href="https://x.com/IndestGames">@IndestGames</a></p>
+    <p>Music by @mindenterprises459</p>
   </footer>
 
   <noscript><p>This map needs JavaScript to keep time.</p></noscript>
@@ -331,38 +332,51 @@ function make(tag, cls, text) {
   return n;
 }
 
-// ---- The clip: a quiet sunset-tinted loop by default; a tap plays the original clip with its sound ----
-const loopBox = $('loopBox'), loop = $('loop'), clip = $('clip');
+// ---- The clip: a quiet sunset-tinted loop by default; a tap plays the full clip with its sound, same tint ----
+// The button, the picture and the phone's own media controls all follow what the clip element is really doing.
+const loopBox = $('loopBox'), loop = $('loop'), clip = $('clip'), soundBtn = $('sound');
 const ambient = !reduceMotion && !(navigator.connection && navigator.connection.saveData);
-let soundOn = false;
+let inView = true;
 const tryPlay = v => { const p = v.play(); if (p && p.catch) p.catch(() => {}); };
+function quietLoop() {                        // the muted loop runs only while the sound is off and it can be seen
+  if (!ambient || !loop.getAttribute('src')) return;
+  if (clip.paused && inView && !document.hidden) tryPlay(loop); else loop.pause();
+}
 if (ambient) {
-  const start = () => { loop.src = 'loop.mp4'; tryPlay(loop); };
+  const start = () => { loop.src = 'loop.mp4'; quietLoop(); };
   if (document.readyState === 'complete') start(); else addEventListener('load', start, { once: true });
-  if (window.IntersectionObserver) new IntersectionObserver(es => es.forEach(e => {
-    if (soundOn || !loop.getAttribute('src')) return;
-    if (e.isIntersecting) tryPlay(loop); else loop.pause();
-  })).observe(loopBox);
+  if (window.IntersectionObserver) new IntersectionObserver(es => es.forEach(e => { inView = e.isIntersecting; quietLoop(); })).observe(loopBox);
 }
-function setSound(on) {
-  soundOn = on;
+function showSound(on) {
   loopBox.classList.toggle('is-on', on);
-  $('sound').setAttribute('aria-pressed', String(on));
+  if (!on) loopBox.classList.remove('is-live');
+  soundBtn.setAttribute('aria-pressed', String(on));
   setText($('soundText'), on ? 'Mute' : 'Play sound');
-  if (on) {
-    if (!clip.getAttribute('src')) clip.src = 'clip.mp4';     // fetched only for people who ask for sound
-    const p = clip.play();
-    if (p && p.catch) p.catch(() => { if (soundOn) setSound(false); });
-    loop.pause();
-  } else {
-    clip.pause();
-    loopBox.classList.remove('is-live');
-    if (ambient && loop.getAttribute('src')) tryPlay(loop);
-  }
+  if ('mediaSession' in navigator) navigator.mediaSession.playbackState = on ? 'playing' : 'paused';
+  quietLoop();
 }
-clip.addEventListener('playing', () => { if (soundOn) loopBox.classList.add('is-live'); });
-$('sound').addEventListener('click', () => setSound(!soundOn));
-document.addEventListener('visibilitychange', () => { if (document.hidden && soundOn) setSound(false); });
+function playSound() {
+  if (!clip.getAttribute('src')) clip.src = 'clip.mp4';        // fetched only for people who ask for sound
+  const p = clip.play();
+  if (p && p.catch) p.catch(() => showSound(false));
+}
+clip.addEventListener('play', () => showSound(true));          // also fires when the phone's media controls start it
+clip.addEventListener('pause', () => showSound(false));        // and when they pause it
+clip.addEventListener('error', () => showSound(false));
+clip.addEventListener('playing', () => { if (!clip.paused) loopBox.classList.add('is-live'); });
+soundBtn.addEventListener('click', () => { if (clip.paused) playSound(); else clip.pause(); });
+document.addEventListener('visibilitychange', quietLoop);
+if ('mediaSession' in navigator) {
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: 'GTA VI launch map', artist: 'Music by @mindenterprises459',
+      artwork: [{ src: new URL('loop.jpg', location.href).href, sizes: '320x320', type: 'image/jpeg' }],
+    });
+    navigator.mediaSession.setActionHandler('play', playSound);
+    navigator.mediaSession.setActionHandler('pause', () => clip.pause());
+    navigator.mediaSession.setActionHandler('stop', () => clip.pause());
+  } catch (e) {}
+}
 
 // ---- The list of waves ----
 if (h12) {                                  // "Wed 12:00 PM" needs a wider time column than "Wed 12:00"
