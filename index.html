@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTA VI Launch Map</title>
+<meta name="description" content="A live world map of where GTA VI has unlocked, country by country. Unofficial fan page.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="GTA VI Launch Map">
+<meta property="og:description" content="A live world map of where GTA VI has unlocked, country by country. Unofficial fan page.">
+<meta property="og:url" content="https://ksvslk.github.io/gta6-launch-map/">
+<meta property="og:image" content="https://ksvslk.github.io/gta6-launch-map/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="World map with countries lit in sunset colours where GTA VI has unlocked">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://ksvslk.github.io/gta6-launch-map/og.jpg">
+<meta name="theme-color" content="#150a2a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ff3d9a'/%3E%3Cstop offset='1' stop-color='%23ffd166'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='7' fill='%23150a2a'/%3E%3Ccircle cx='16' cy='16' r='9' fill='url(%23g)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&amp;family=Barlow+Semi+Condensed:wght@500;600&amp;family=Bowlby+One&amp;display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: one left-aligned column. The map is a stencil cut over a sunset; type and rules stay quiet around it. */
+  --night:#150a2a;   /* page and ocean */
+  --land:#4a2d7a;    /* countries still waiting */
+  --ink:#fff1e6;     /* text */
+  --haze:#cbb5e8;    /* secondary text */
+  --dim:#a18bc4;     /* tertiary text */
+  --teal:#37e6d0;    /* next to unlock */
+  --sun-1:#ff3d9a; --sun-2:#ff6f61; --sun-3:#ff9f45; --sun-4:#ffd166;   /* the sunset, top to bottom */
+  --sunset:linear-gradient(180deg,var(--sun-1),var(--sun-2) 45%,var(--sun-3) 75%,var(--sun-4));
+  --rule:rgba(255,241,230,.16);
+  --display:"Bowlby One","Arial Black",Impact,sans-serif;
+  --body:"Barlow","Helvetica Neue",Arial,sans-serif;
+  --tight:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;background:var(--night);-webkit-text-size-adjust:100%}
+body{
+  margin:0;min-height:100%;color:var(--ink);font:400 1rem/1.5 var(--body);
+  background:
+    radial-gradient(70rem 34rem at 88% -8rem,rgba(255,61,154,.30),transparent 62%),
+    radial-gradient(46rem 26rem at 104% 4rem,rgba(255,159,69,.22),transparent 60%),
+    var(--night);
+  background-repeat:no-repeat;
+}
+h1,h2,p,ol,ul{margin:0}
+a{color:var(--ink);text-underline-offset:3px}
+a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2px}
+.num{font-family:var(--tight);font-variant-numeric:tabular-nums}
+
+.page{max-width:82rem;margin:0 auto;padding:clamp(16px,3vw,40px);display:flex;flex-direction:column;gap:clamp(22px,3vw,38px)}
+
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 24px}
+.top h1{font:600 1.0625rem/1.3 var(--body);letter-spacing:.01em}
+.top p{color:var(--haze);font-size:.9375rem}
+
+/* Hero: the live sentence, then what unlocks next */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(15rem,21rem);gap:clamp(20px,4vw,56px);align-items:end}
+.headline{font:400 clamp(2.25rem,1rem + 3.4vw,3.75rem)/1.06 var(--display);text-wrap:balance;color:var(--sun-3);
+  filter:drop-shadow(0 .05em 0 #6b1d8f) drop-shadow(0 .1em 0 rgba(10,4,24,.55))}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  .headline span{background:var(--sunset);-webkit-background-clip:text;background-clip:text;color:transparent;
+    -webkit-box-decoration-break:clone;box-decoration-break:clone}
+}
+.next{border-top:2px solid var(--teal);padding-top:10px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.next h2{font:500 .9375rem/1.3 var(--body);color:var(--haze)}
+.next-name{font:600 1.125rem/1.25 var(--body);overflow-wrap:anywhere}
+.next-count{font:600 clamp(1.75rem,1.15rem + 1.9vw,2.5rem)/1.1 var(--tight);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--teal)}
+.next-count[hidden]{display:none}
+.next-sub{font-size:.875rem;line-height:1.4;color:var(--haze)}
+
+/* Map */
+.stage{position:relative;aspect-ratio:2000/915;border-radius:14px;overflow:hidden;touch-action:manipulation;
+  background:radial-gradient(120% 60% at 50% 118%,rgba(255,61,154,.16),transparent 60%),linear-gradient(180deg,#1c0e38,var(--night))}
+.stage::after{content:"";position:absolute;inset:0;border-radius:inherit;border:1px solid rgba(255,241,230,.1);pointer-events:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+#pulse,#over{pointer-events:none}
+#lands path,#dots circle{fill:var(--land);stroke:var(--night);vector-effect:non-scaling-stroke;stroke-linejoin:round;cursor:pointer}
+#lands path{stroke-width:.9}
+#dots circle{stroke-width:1.4}
+#lands path.out,#dots circle.out{fill:url(#sun)}
+#pulse{animation:breathe 2.6s ease-in-out infinite}
+#pulse path,#pulse circle{fill:rgba(55,230,208,.24);stroke:var(--teal);stroke-width:1.6;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+#flash{fill:#fff;opacity:0}
+#hover,#hoverDot{fill:none;stroke:#fff;stroke-width:1.8;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+@keyframes breathe{50%{opacity:.35}}
+.tip{position:absolute;left:0;top:0;z-index:3;max-width:15.5rem;padding:8px 11px;border-radius:8px;background:var(--ink);color:#2a1650;
+  font-size:.875rem;line-height:1.35;box-shadow:0 8px 28px rgba(0,0,0,.45);pointer-events:none;display:flex;flex-direction:column;gap:1px}
+.tip[hidden]{display:none}
+.tip b{font-weight:600;font-size:.9375rem;color:var(--night)}
+.tip small{font-size:.8125rem;color:#6a4f96}
+.map-error{position:absolute;inset:0;display:grid;place-items:center;padding:16px;text-align:center;color:var(--haze)}
+.map-error[hidden]{display:none}
+.legend{list-style:none;padding:0;margin-top:12px;display:flex;flex-wrap:wrap;gap:8px 24px;color:var(--haze);font-size:.9375rem}
+.legend li{display:flex;align-items:center;gap:8px}
+.sw{width:22px;height:13px;border-radius:3px;flex:none}
+.sw-out{background:var(--sunset)}
+.sw-est{background:repeating-linear-gradient(-50deg,#2a1650 0 2.4px,transparent 2.4px 5.6px),var(--sunset)}
+.sw-next{background:rgba(55,230,208,.24);border:1.5px solid var(--teal)}
+.sw-wait{background:var(--land)}
+
+/* Lower: the 15 waves as a timeline, then the fine print */
+.lower{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:clamp(28px,5vw,72px);align-items:start}
+.lower h2{font:600 1.25rem/1.3 var(--body);margin-bottom:16px}
+.waves{list-style:none;padding:0}
+.wave{position:relative;display:grid;grid-template-columns:18px var(--when,5.4rem) minmax(0,1fr) auto;column-gap:12px;padding-bottom:16px}
+.wave .t{display:contents}
+.wave .dot{grid-area:1/1}
+.wave .when{grid-area:1/2}
+.wave .who{grid-area:1/3}
+.wave .state{grid-area:1/4}
+.wave::before{content:"";position:absolute;left:8px;top:16px;bottom:-8px;width:2px;
+  background:linear-gradient(180deg,var(--sun-2) var(--p,0%),var(--rule) var(--p,0%))}
+.wave:last-child{padding-bottom:0}
+.wave:last-child::before{display:none}
+.wave .dot{position:relative;z-index:1;width:12px;height:12px;margin:6px 0 0 3px;border-radius:50%;border:2px solid var(--dim);background:var(--night)}
+.wave.is-out .dot{border:0;background:var(--sunset)}
+.wave.is-next .dot{border-color:var(--teal);background:#1d5a66}
+.when{font:600 1.0625rem/1.5 var(--tight);font-variant-numeric:tabular-nums;white-space:nowrap}
+.who{min-width:0}
+.names{color:var(--haze)}
+.names b{font-weight:600;color:var(--ink)}
+.also{font-size:.875rem;line-height:1.4;color:var(--dim);margin-top:2px}
+.state{font:500 1rem/1.5 var(--tight);font-variant-numeric:tabular-nums;color:var(--dim);white-space:nowrap;text-align:right}
+.wave.is-out .state{color:var(--sun-4)}
+.wave.is-next .state{color:var(--teal);font-weight:600}
+.wave.is-later .when{color:var(--haze)}
+.notes p{color:var(--haze);max-width:60ch;margin-bottom:.8em}
+.notes p:last-child{margin-bottom:0;color:var(--dim);font-size:.875rem}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr;align-items:start}
+  .lower{grid-template-columns:1fr}
+}
+@media (max-width:480px){
+  .wave{grid-template-columns:18px var(--when-s,4.6rem) minmax(0,1fr);column-gap:10px}
+  .wave .t{display:block;grid-area:1/2}
+  .wave .state{text-align:left}
+  .when,.state{font-size:.9375rem}
+  .legend{gap:6px 16px;font-size:.875rem}
+}
+@media (prefers-reduced-motion:reduce){#pulse{animation:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="top">
+    <h1>GTA VI launch map</h1>
+    <p id="tag">Unofficial fan page</p>
+  </header>
+
+  <section class="hero" aria-label="Live status">
+    <p class="headline" role="status" aria-live="polite"><span id="headline">Out in 1 of 63 store regions</span></p>
+    <div class="next">
+      <h2 id="nextTitle">Next to unlock</h2>
+      <p class="next-name" id="nextName">Australia</p>
+      <p class="next-count" id="nextCount" role="timer">0:00:00</p>
+      <p class="next-sub" id="nextSub"></p>
+    </div>
+  </section>
+
+  <section aria-label="World map">
+    <div class="stage" id="stage">
+      <svg id="base" viewBox="0 0 2000 915" role="img" aria-label="World map of where GTA VI has unlocked">
+        <defs>
+          <linearGradient id="sun" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="915">
+            <stop offset="0" stop-color="#ff3d9a"/><stop offset=".45" stop-color="#ff6f61"/>
+            <stop offset=".75" stop-color="#ff9f45"/><stop offset="1" stop-color="#ffd166"/>
+          </linearGradient>
+          <pattern id="hatch" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(-40)">
+            <rect id="hatchBar" width="10" height="4.2" fill="#2a1650"/>
+          </pattern>
+          <clipPath id="unlisted"><path id="unlistedPath" d=""/></clipPath>
+        </defs>
+        <g id="lands"></g>
+        <rect width="2000" height="915" fill="url(#hatch)" clip-path="url(#unlisted)" pointer-events="none"/>
+        <g id="dots"></g>
+      </svg>
+      <svg id="pulse" viewBox="0 0 2000 915" aria-hidden="true"><path id="nextPath" d=""/><g id="nextDots"></g></svg>
+      <svg id="over" viewBox="0 0 2000 915" aria-hidden="true">
+        <path id="flash" d=""/><path id="hover" d=""/><circle id="hoverDot" r="0"/>
+      </svg>
+      <p class="map-error" id="mapError" hidden>The map shapes did not load. Reload the page to try again.</p>
+      <div class="tip" id="tip" hidden><b id="tipName"></b><span id="tipState"></span><small id="tipNote"></small></div>
+    </div>
+    <ul class="legend">
+      <li><span class="sw sw-out"></span>Out, PlayStation Store unlocked</li>
+      <li><span class="sw sw-est"></span>Past midnight, no store listing</li>
+      <li><span class="sw sw-next"></span>Next to unlock</li>
+      <li><span class="sw sw-wait"></span>Not yet</li>
+    </ul>
+  </section>
+
+  <div class="lower">
+    <section>
+      <h2>All 15 waves, on your clock</h2>
+      <ol class="waves" id="waves"></ol>
+    </section>
+    <section class="notes">
+      <h2>How to read the map</h2>
+      <p>Rockstar says GTA VI releases at midnight local time on 19 November in every region, on PS5 and Xbox Series X|S. A country lights up when the game unlocks there.</p>
+      <p>A solid country has a PlayStation Store listing that has unlocked. Regional store pages give an exact time for 63 countries and regions, in 15 waves. A country with several time zones unlocks all at once.</p>
+      <p>A striped country has no store listing. It lights up once midnight passes in its capital. Treat that as a guide, because the game may not be sold there.</p>
+      <p>This page follows the published schedule and your device's clock. It does not check the stores, and it covers digital copies only.</p>
+      <p>Microsoft has not published country times for Xbox Series X|S. Xbox Cloud Gaming starts at <span id="cloudTime">06:00 UTC on Thursday</span>.</p>
+      <p>Sources: <a href="https://support.rockstargames.com/articles/29jV3Cv2cCgvwM1XgtMO5o">Rockstar Games support</a> and the <a href="https://www.gtaboom.com/gta-6-release-times-when-it-unlocks-in-your-region-and-how-to-play-early-da2c">PlayStation Store times compiled by GTA BOOM</a>.</p>
+      <p>Fan-made and unofficial. Not affiliated with Rockstar Games, Take-Two Interactive, Sony or Microsoft.</p>
+    </section>
+  </div>
+
+  <noscript><p>This map needs JavaScript to keep time.</p></noscript>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+const VW = 2000, VH = 915, MIN = 60000, TOTAL = 63;
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const $ = id => document.getElementById(id);
+const U = (d, h, m) => Date.UTC(2026, 10, d, h, m || 0);
+
+// The 15 PlayStation Store waves. Times are UTC; names match countries.json.
+const WAVES = [
+  { t: U(18, 11), lead: ['New Zealand'] },
+  { t: U(18, 13), lead: ['Australia'],
+    also: ['Every state unlocks together, so that is ', ['Australia/Perth', 'Perth'], '.'] },
+  { t: U(18, 15), lead: ['Japan', 'South Korea'] },
+  { t: U(18, 16), lead: ['Hong Kong', 'Malaysia', 'Singapore', 'Taiwan'] },
+  { t: U(18, 17), lead: ['Indonesia', 'Thailand'] },
+  { t: U(18, 18, 30), lead: ['India'] },
+  { t: U(18, 20), lead: ['United Arab Emirates'] },
+  { t: U(18, 21), lead: ['Saudi Arabia', 'Türkiye'] },
+  { t: U(18, 22), lead: ['Finland', 'Greece', 'South Africa'], rest: ['Bulgaria', 'Cyprus', 'Israel', 'Romania', 'Ukraine'] },
+  { t: U(18, 23), lead: ['France', 'Germany', 'Italy', 'Spain'],
+    rest: ['Austria', 'Belgium', 'Croatia', 'Czechia', 'Denmark', 'Hungary', 'Luxembourg', 'Malta', 'Netherlands', 'Norway', 'Poland', 'Slovakia', 'Slovenia', 'Sweden', 'Switzerland'] },
+  { t: U(19, 0), lead: ['United Kingdom', 'Ireland', 'Portugal', 'Iceland'] },
+  { t: U(19, 3), lead: ['Brazil', 'Argentina', 'Chile'], rest: ['Paraguay', 'Uruguay'],
+    also: ['All of Brazil unlocks together, so that is ', ['America/Manaus', 'Manaus'], '.'] },
+  { t: U(19, 4), lead: ['Bolivia'] },
+  { t: U(19, 5), lead: ['United States', 'Canada'], rest: ['Colombia', 'Ecuador', 'Panama', 'Peru'],
+    also: ['The US and Canada unlock together, so that is ', ['America/Los_Angeles', 'Los Angeles'], ' and ', ['Pacific/Honolulu', 'Honolulu'], '.'] },
+  { t: U(19, 6), lead: ['Mexico'], rest: ['Costa Rica', 'El Salvador', 'Guatemala', 'Honduras', 'Nicaragua'],
+    also: ['All of Mexico unlocks together, so that is ', ['America/Tijuana', 'Tijuana'], '.'] },
+];
+WAVES.forEach(w => { w.n = w.lead.length + (w.rest ? w.rest.length : 0); w.d = ''; w.dots = []; });
+const CLOUD = U(19, 6);   // Xbox Cloud Gaming, 1 a.m. Eastern
+
+// Clock. Adding ?at=2026-11-18T23:30Z starts the page at that moment, for testing.
+const loaded = Date.now();
+let at = NaN;
+try { at = Date.parse(new URLSearchParams(location.search).get('at') || ''); } catch (e) {}
+const clock = () => isNaN(at) ? Date.now() : at + (Date.now() - loaded);
+if (!isNaN(at)) $('tag').textContent = 'Unofficial fan page. Preview clock, not live.';
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Formatting: English words, the viewer's own 12 or 24 hour habit.
+let h12 = false;
+try { h12 = /h1[12]/.test(new Intl.DateTimeFormat(undefined, { hour: 'numeric' }).resolvedOptions().hourCycle || ''); } catch (e) {}
+const LOCALE = h12 ? 'en-US' : 'en-GB';
+const dayTimeOpts = { weekday: 'short', hour: h12 ? 'numeric' : '2-digit', minute: '2-digit' };
+const fDayTime = new Intl.DateTimeFormat(LOCALE, dayTimeOpts);
+const dayTime = t => fDayTime.format(t);
+function dayTimeIn(t, zone) {
+  try { return new Intl.DateTimeFormat(LOCALE, Object.assign({ timeZone: zone }, dayTimeOpts)).format(t); } catch (e) { return ''; }
+}
+const two = n => String(n).padStart(2, '0');
+function hms(ms) {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  return Math.floor(s / 3600) + ':' + two(Math.floor(s % 3600 / 60)) + ':' + two(s % 60);
+}
+function hm(ms) {
+  const m = Math.max(0, Math.ceil(ms / MIN)), h = Math.floor(m / 60);
+  return h ? h + 'h ' + two(m % 60) + 'm' : m + 'm';
+}
+function sentenceList(names, more) {
+  if (more) return names.join(', ') + ' and ' + more + ' more';
+  return names.length < 2 ? names.join('') : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+}
+function setText(node, text) { if (node.textContent !== text) node.textContent = text; }
+function make(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+
+// ---- The list of waves ----
+if (h12) {                                  // "Wed 12:00 PM" needs a wider time column than "Wed 12:00"
+  $('waves').style.setProperty('--when', '6.3rem');
+  $('waves').style.setProperty('--when-s', '5.7rem');
+}
+const rows = WAVES.map((w, i) => {
+  const li = make('li', 'wave');
+  const dot = make('span', 'dot');
+  dot.setAttribute('aria-hidden', 'true');
+  const who = make('div', 'who'), names = make('p', 'names');
+  w.lead.concat(w.rest || []).forEach((name, k, all) => {
+    names.append(make(k < w.lead.length ? 'b' : 'span', '', name), k < all.length - 1 ? ', ' : '');
+  });
+  who.append(names);
+  if (w.also) {
+    const text = w.also.map(part => {
+      if (typeof part === 'string') return part;
+      const local = dayTimeIn(w.t, part[0]);
+      return local ? local + ' in ' + part[1] : 'earlier on the clock in ' + part[1];
+    }).join('');
+    who.append(make('p', 'also', text));
+  }
+  const state = make('div', 'state'), t = make('div', 't');
+  t.append(make('div', 'when', dayTime(w.t)), state);
+  li.append(dot, t, who);
+  li.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') outline(w.d); });
+  li.addEventListener('pointerleave', () => outline(''));
+  $('waves').append(li);
+  return { li, state };
+});
+setText($('cloudTime'), dayTime(CLOUD) + ' on your clock');
+
+// ---- The map ----
+const stage = $('stage'), lands = $('lands'), dotsG = $('dots'), tip = $('tip');
+let countries = [], ptr = 0, mapReady = false, replaying = false, markR = 6, lastDone = -1;
+
+function svgEl(tag) { return document.createElementNS(SVG_NS, tag); }
+function outline(d) { $('hover').setAttribute('d', d || ''); $('hoverDot').setAttribute('r', 0); }
+
+function lightUpTo(t, flash) {
+  let d = '';
+  while (ptr < countries.length && countries[ptr].tms <= t) {
+    const c = countries[ptr++];
+    if (c.el) c.el.classList.add('out');
+    if (c.dotEl) c.dotEl.classList.add('out');
+    d += c.d;
+  }
+  const f = $('flash');
+  if (d && flash && !reduceMotion && f.animate) {
+    f.setAttribute('d', d);
+    f.animate([{ opacity: .9 }, { opacity: 0 }], { duration: 1600, easing: 'ease-out' });
+  }
+}
+
+function showNext(done) {
+  const w = WAVES[done], g = $('nextDots');
+  $('nextPath').setAttribute('d', w ? w.d : '');
+  g.textContent = '';
+  if (w) w.dots.forEach(c => {
+    const k = svgEl('circle');
+    k.setAttribute('cx', c.c[0]); k.setAttribute('cy', c.c[1]); k.setAttribute('r', markR * 1.7);
+    g.append(k);
+  });
+}
+
+// Keep hatching and small-country markers a steady size on screen.
+function sizeMarks() {
+  const unit = VW / (stage.clientWidth || 1000);   // map units per CSS pixel
+  const period = Math.max(10, 5.5 * unit);
+  $('hatch').setAttribute('width', period); $('hatch').setAttribute('height', period);
+  $('hatchBar').setAttribute('width', period); $('hatchBar').setAttribute('height', period * .42);
+  markR = Math.max(6, 3.2 * unit);
+  dotsG.querySelectorAll('circle').forEach(k => k.setAttribute('r', markR));
+  $('nextDots').querySelectorAll('circle').forEach(k => k.setAttribute('r', markR * 1.7));
+}
+
+function setupMap(data) {
+  countries = data;
+  const landFrag = document.createDocumentFragment(), dotFrag = document.createDocumentFragment();
+  let unlisted = '';
+  data.forEach((c, i) => {
+    c.tms = c.t * MIN;
+    if (c.d) {
+      const p = svgEl('path');
+      p.setAttribute('d', c.d); p.setAttribute('data-i', i);
+      landFrag.append(p); c.el = p;
+      if (!c.w) unlisted += c.d;
+    }
+    if (c.dot) {
+      const k = svgEl('circle');
+      k.setAttribute('cx', c.c[0]); k.setAttribute('cy', c.c[1]); k.setAttribute('data-i', i);
+      dotFrag.append(k); c.dotEl = k;
+    }
+    if (c.w) { const w = WAVES[c.w - 1]; w.d += c.d; if (c.dot) w.dots.push(c); }
+  });
+  lands.append(landFrag); dotsG.append(dotFrag);
+  $('unlistedPath').setAttribute('d', unlisted);
+  sizeMarks();
+  if (window.ResizeObserver) new ResizeObserver(sizeMarks).observe(stage);
+
+  mapReady = true;
+  const now = clock(), t0 = WAVES[0].t;
+  if (reduceMotion || now <= t0) lightUpTo(now, false);
+  else {                                   // replay the rollout so far, once, on arrival
+    replaying = true;
+    const start = performance.now(), dur = 1500;
+    const frame = ts => {
+      const k = Math.min(1, Math.max(0, (ts - start) / dur));
+      lightUpTo(t0 - 1 + (clock() - t0 + 1) * k, false);
+      if (k < 1) requestAnimationFrame(frame); else replaying = false;
+    };
+    requestAnimationFrame(frame);
+  }
+  lastDone = -1;
+  render();
+}
+
+// Tooltip: hover with a mouse, tap to pin on touch.
+let pointer = 'mouse', pinned = false;
+function describe(c, now) {
+  const out = c.tms <= now, when = dayTime(c.tms) + ' your time';
+  if (c.w) return [out ? 'Out since ' + when : 'Unlocks ' + when + ', in ' + hm(c.tms - now), 'PlayStation Store listing'];
+  return [out ? 'Past midnight since ' + when : 'Midnight at ' + when + ', in ' + hm(c.tms - now),
+    'No store listing. Shown by ' + (c.by ? 'midnight in ' + c.by : 'local midnight') + '.'];
+}
+function showTip(c, e) {
+  const lines = describe(c, clock());
+  setText($('tipName'), c.n); setText($('tipState'), lines[0]); setText($('tipNote'), lines[1]);
+  tip.hidden = false;
+  const box = stage.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = e.clientX - box.left + 14, y = e.clientY - box.top + 16;
+  if (x + w > box.width - 4) x = e.clientX - box.left - w - 12;
+  if (y + h > box.height - 4) y = e.clientY - box.top - h - 12;
+  tip.style.transform = 'translate(' + Math.max(4, x) + 'px,' + Math.max(4, y) + 'px)';
+  $('hover').setAttribute('d', c.d || '');
+  const hd = $('hoverDot');
+  if (c.dot) { hd.setAttribute('cx', c.c[0]); hd.setAttribute('cy', c.c[1]); hd.setAttribute('r', markR * 1.7); }
+  else hd.setAttribute('r', 0);
+}
+function hideTip() { tip.hidden = true; pinned = false; outline(''); }
+function countryAt(e) {
+  const t = e.target && e.target.closest ? e.target.closest('[data-i]') : null;
+  return t ? countries[+t.getAttribute('data-i')] : null;
+}
+stage.addEventListener('pointerdown', e => { pointer = e.pointerType || 'mouse'; });
+stage.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse' || pinned) return;
+  const c = countryAt(e);
+  if (c) showTip(c, e); else hideTip();
+});
+stage.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !pinned) hideTip(); });
+stage.addEventListener('click', e => {
+  const c = countryAt(e);
+  if (!c) { hideTip(); return; }
+  showTip(c, e);
+  pinned = pointer !== 'mouse';
+});
+document.addEventListener('click', e => { if (pinned && !stage.contains(e.target)) hideTip(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideTip(); });
+
+// ---- Everything that changes with the clock ----
+function render() {
+  const now = clock();
+  let done = 0, out = 0;
+  WAVES.forEach(w => { if (w.t <= now) { done++; out += w.n; } });
+
+  setText($('headline'), out === 0 ? 'Not out anywhere yet'
+    : out === TOTAL ? 'Out in all 63 store regions' : 'Out in ' + out + ' of ' + TOTAL + ' store regions');
+
+  const next = WAVES[done];
+  if (next) {
+    setText($('nextName'), sentenceList(next.lead, next.rest ? next.rest.length : 0));
+    setText($('nextCount'), hms(next.t - now));
+    setText($('nextSub'), dayTime(next.t) + ' on your clock');
+  } else {
+    setText($('nextTitle'), 'Rollout complete');
+    setText($('nextName'), 'All 15 waves have unlocked');
+    $('nextCount').hidden = true;
+    setText($('nextSub'), 'Mexico and Central America went last, ' + dayTime(WAVES[WAVES.length - 1].t) + ' on your clock.');
+  }
+
+  rows.forEach((r, i) => {
+    const w = WAVES[i], cls = i < done ? 'is-out' : i === done ? 'is-next' : 'is-later';
+    if (r.cls !== cls) { r.li.classList.remove('is-out', 'is-next', 'is-later'); r.li.classList.add(cls); r.cls = cls; }
+    setText(r.state, i < done ? 'Out' : i === done ? hms(w.t - now) : 'in ' + hm(w.t - now));
+    const p = i < done - 1 ? 100 : i === done - 1 && next ? Math.round((now - w.t) / (next.t - w.t) * 1000) / 10 : 0;
+    if (r.p !== p) { r.li.style.setProperty('--p', p + '%'); r.p = p; }
+  });
+
+  if (mapReady) {
+    if (!replaying) lightUpTo(now, true);
+    if (done !== lastDone) {
+      lastDone = done;
+      showNext(done);
+      $('base').setAttribute('aria-label', 'World map of where GTA VI has unlocked. ' + $('headline').textContent + '.');
+    }
+  }
+}
+function tick() {
+  render();
+  setTimeout(tick, 1000 - (Date.now() % 1000) + 5);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+tick();
+
+fetch('countries.json')
+  .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(setupMap)
+  .catch(() => { $('mapError').hidden = false; });
+})();
+</script>
+</body>
+</html>
